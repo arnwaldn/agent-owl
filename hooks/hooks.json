@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$PLUGIN_DIR/hooks/atum-session-start.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$PLUGIN_DIR/hooks/atum-post-write.py\"",
+            "timeout": 10,
+            "statusMessage": "ATUM: hashing file..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$PLUGIN_DIR/hooks/atum-compliance-check.py\"",
+            "timeout": 15,
+            "statusMessage": "ATUM: compliance check..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "agent-owl",
+  "description": "ATUM Audit Agent — Cryptographic file integrity monitoring with OWL/RDF ontology and EU AI Act (Reg. 2024/1689) compliance for Claude Code",
+  "version": "2.0.0",
+  "author": "Arnaud Porcel",
+  "license": "MIT"
+}

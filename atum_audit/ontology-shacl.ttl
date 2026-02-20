@@ -1,0 +1,282 @@
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix atum:   <https://atum.dev/ontology/audit#> .
+
+# =============================================================================
+# ATUM SHACL Shapes — Validation Rules
+# Tier 1: Core (all AI systems)
+# Tier 2: High-Risk (Annex IV requirements, Art. 6)
+# =============================================================================
+
+# =============================================================================
+# TIER 1 — CORE SHAPES (all AI systems)
+# =============================================================================
+
+atum:AISystemCoreShape a sh:NodeShape ;
+    sh:targetClass atum:AISystem ;
+    rdfs:label "AI System — Core validation"@fr ;
+    rdfs:comment "Validation de base pour tout systeme d'IA enregistre."@fr ;
+
+    sh:property [
+        sh:path atum:systemName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "Un systeme d'IA doit avoir exactement un nom (systemName)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:hasRiskLevel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class atum:RiskLevel ;
+        sh:message "Un systeme d'IA doit avoir exactement un niveau de risque (hasRiskLevel)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:hasComplianceStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class atum:ComplianceStatus ;
+        sh:message "Un systeme d'IA doit avoir exactement un statut de conformite (hasComplianceStatus)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:intendedPurpose ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "La finalite prevue (intendedPurpose) est recommandee pour tout systeme d'IA."@fr ;
+        sh:severity sh:Warning
+    ] ;
+
+    sh:property [
+        sh:path atum:retentionMinMonths ;
+        sh:minInclusive 6 ;
+        sh:datatype xsd:positiveInteger ;
+        sh:message "La retention minimale doit etre d'au moins 6 mois (Art. 12)."@fr ;
+        sh:severity sh:Violation
+    ] .
+
+
+atum:IncidentCoreShape a sh:NodeShape ;
+    sh:targetClass atum:Incident ;
+    rdfs:label "Incident — Core validation"@fr ;
+
+    sh:property [
+        sh:path atum:involvesSystem ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class atum:AISystem ;
+        sh:message "Un incident doit impliquer exactement un systeme d'IA (involvesSystem)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:hasIncidentSeverity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class atum:IncidentSeverity ;
+        sh:message "Un incident doit avoir exactement une severite (hasIncidentSeverity)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:incidentDescription ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "Un incident doit avoir une description (incidentDescription)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:incidentTimestamp ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTime ;
+        sh:message "Un incident doit avoir un horodatage (incidentTimestamp)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:reportingDeadline ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTime ;
+        sh:message "Un incident doit avoir une date limite de declaration (reportingDeadline, Art. 62)."@fr ;
+        sh:severity sh:Warning
+    ] .
+
+
+atum:DatasetCoreShape a sh:NodeShape ;
+    sh:targetClass atum:Dataset ;
+    rdfs:label "Dataset — Core validation"@fr ;
+
+    sh:property [
+        sh:path atum:datasetName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "Un jeu de donnees doit avoir un nom (datasetName)."@fr ;
+        sh:severity sh:Violation
+    ] .
+
+
+atum:ModelVersionCoreShape a sh:NodeShape ;
+    sh:targetClass atum:ModelVersion ;
+    rdfs:label "Model Version — Core validation"@fr ;
+
+    sh:property [
+        sh:path atum:modelVersionTag ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:message "Une version de modele doit avoir un tag (modelVersionTag)."@fr ;
+        sh:severity sh:Violation
+    ] .
+
+
+# =============================================================================
+# TIER 2 — HIGH-RISK SHAPES (Annex IV, Art. 6 systems)
+# NOTE: These shapes do NOT use sh:targetClass. They are activated
+# programmatically by the validator for high-risk systems only.
+# =============================================================================
+
+atum:AISystemHighRiskShape a sh:NodeShape ;
+    rdfs:label "AI System — High-Risk (Annexe IV)"@fr ;
+    rdfs:comment "Champs obligatoires pour la documentation technique des systemes a haut risque."@fr ;
+
+    sh:property [
+        sh:path atum:annexIV_generalDescription ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 10 ;
+        sh:message "Documentation technique : description generale requise (Annexe IV, pt. 1)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_oversightMeasures ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Mesures de supervision humaine requises (Annexe IV, pt. 6, Art. 14)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_cybersecurityMeasures ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Mesures de cybersecurite requises (Annexe IV, pt. 7, Art. 15)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_foreseeMisuse ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Mesusages previsibles requis (Annexe IV, pt. 4)."@fr ;
+        sh:severity sh:Warning
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_componentDescription ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Description des composants requise (Annexe IV, pt. 2)."@fr ;
+        sh:severity sh:Warning
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_developmentProcess ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Processus de developpement requis (Annexe IV, pt. 3)."@fr ;
+        sh:severity sh:Warning
+    ] .
+
+
+atum:ModelVersionHighRiskShape a sh:NodeShape ;
+    rdfs:label "Model Version — High-Risk (Annexe IV)"@fr ;
+
+    sh:property [
+        sh:path atum:annexIV_performanceDescription ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Description des performances requise (Annexe IV, pt. 4)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_knownLimitations ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Limites connues requises (Annexe IV, pt. 4)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_accuracyMetrics ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Metriques de precision requises (Annexe IV, pt. 7)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_robustnessTests ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Tests de robustesse requis (Annexe IV, pt. 7)."@fr ;
+        sh:severity sh:Warning
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_designChoices ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Choix de conception requis (Annexe IV, pt. 3)."@fr ;
+        sh:severity sh:Warning
+    ] .
+
+
+atum:DatasetHighRiskShape a sh:NodeShape ;
+    rdfs:label "Dataset — High-Risk (Annexe IV)"@fr ;
+
+    sh:property [
+        sh:path atum:annexIV_dataGovernance ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Gouvernance des donnees requise (Annexe IV, pt. 5, Art. 10)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_dataOrigin ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Origine des donnees requise (Annexe IV, pt. 5)."@fr ;
+        sh:severity sh:Violation
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_dataBiasAssessment ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Evaluation des biais requise (Annexe IV, pt. 5)."@fr ;
+        sh:severity sh:Warning
+    ] ;
+
+    sh:property [
+        sh:path atum:annexIV_dataPreparation ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:message "Preparation des donnees requise (Annexe IV, pt. 5)."@fr ;
+        sh:severity sh:Warning
+    ] .

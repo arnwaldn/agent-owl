@@ -1,0 +1,7 @@
+{
+  "command": "python",
+  "args": ["$PLUGIN_DIR/atum_mcp_server.py"],
+  "env": {
+    "ATUM_PROJECT_DIR": "$PLUGIN_DIR"
+  }
+}

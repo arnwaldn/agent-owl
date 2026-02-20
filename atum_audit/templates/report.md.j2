@@ -1,0 +1,58 @@
+# Rapport de conformite AI Act
+
+**Systeme** : {{ system_name }}
+**Date** : {{ timestamp }}
+**Version** : ATUM Audit v{{ version }}
+
+---
+
+## Statut global
+
+| Critere | Valeur |
+|---------|--------|
+| Niveau de risque | {{ risk_level }} |
+| Conformite | {{ compliance_status }} |
+| Phase | {{ lifecycle_phase }} |
+{% if validation %}| Validation SHACL | {% if validation.conforms %}Conforme{% else %}{{ validation.stats.errors }} erreur(s), {{ validation.stats.warnings }} avertissement(s){% endif %} |
+{% endif %}
+
+{% if annex_iv %}
+## Documentation technique (Annexe IV)
+
+Completude globale : **{{ annex_iv.completeness_pct }}%**
+
+| Point | Article | Completude | Champs manquants |
+|-------|---------|------------|------------------|
+{% for pt in annex_iv.points %}| {{ pt.label }} | {{ pt.article }} | {{ pt.pct|round(0)|int }}% | {% if pt.missing %}{{ pt.missing|join(', ') }}{% else %}-{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if violations %}
+## Violations SHACL
+
+| Severite | Noeud | Propriete | Message |
+|----------|-------|-----------|---------|
+{% for v in violations %}| {{ v.severity }} | {{ v.focus_node }} | {{ v.path }} | {{ v.message }} |
+{% endfor %}
+{% endif %}
+
+{% if incidents %}
+## Incidents (Art. 62)
+
+| ID | Description | Severite | Date | Deadline |
+|----|-------------|----------|------|----------|
+{% for inc in incidents %}| {{ inc.incident_id }} | {{ inc.description }} | {{ inc.severity }} | {{ inc.timestamp }} | {{ inc.deadline }} |
+{% endfor %}
+{% endif %}
+
+{% if models %}
+## Lineage des modeles (Art. 11)
+
+| Version | Date entrainement | Metriques |
+|---------|-------------------|-----------|
+{% for m in models %}| {{ m.version_tag }} | {{ m.trained_at }} | {{ m.metrics }} |
+{% endfor %}
+{% endif %}
+
+---
+*Genere par ATUM Audit Agent — Reg. (EU) 2024/1689*

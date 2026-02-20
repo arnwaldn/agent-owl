@@ -1,0 +1,878 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix spdx:   <http://spdx.org/rdf/terms#> .
+@prefix atum:   <https://atum.dev/ontology/audit#> .
+
+# =============================================================================
+# ATUM Audit Ontology v2.0
+# Cryptographic integrity tracking + provenance for agency file management
+# EU AI Act (Reg. 2024/1689) compliance extensions
+# OWL 2 DL compliant
+# =============================================================================
+
+<https://atum.dev/ontology/audit> a owl:Ontology ;
+    owl:versionIRI <https://atum.dev/ontology/audit/2.0> ;
+    owl:versionInfo "2.0.0" ;
+    dcterms:title "ATUM Audit Ontology"@fr ;
+    dcterms:description "Ontologie de traçabilité cryptographique, d'audit continu et de conformité AI Act (Rég. EU 2024/1689)."@fr ;
+    dcterms:creator "ATUM Agency" ;
+    dcterms:created "2026-02-17"^^xsd:date ;
+    owl:imports <http://www.w3.org/ns/prov#> .
+
+# =============================================================================
+# CLASSES
+# =============================================================================
+
+# --- Core entities ---
+
+atum:File a owl:Class ;
+    rdfs:label "Fichier"@fr ;
+    rdfs:comment "Tout fichier suivi dans le workspace ATUM."@fr ;
+    rdfs:subClassOf prov:Entity .
+
+atum:FileVersion a owl:Class ;
+    rdfs:label "Version de fichier"@fr ;
+    rdfs:comment "Instantané immuable d'un fichier à un moment donné, identifié par son hash."@fr ;
+    rdfs:subClassOf prov:Entity .
+
+atum:AuditEvent a owl:Class ;
+    rdfs:label "Événement d'audit"@fr ;
+    rdfs:comment "Enregistrement atomique d'un événement détecté par l'agent."@fr ;
+    rdfs:subClassOf prov:Activity .
+
+atum:Agent a owl:Class ;
+    rdfs:label "Agent"@fr ;
+    rdfs:comment "Entité ayant déclenché ou détecté l'événement (humain, script, CI/CD)."@fr ;
+    rdfs:subClassOf prov:Agent .
+
+atum:HashDigest a owl:Class ;
+    rdfs:label "Empreinte cryptographique"@fr ;
+    rdfs:comment "Valeur de hash avec son algorithme. Immuable."@fr .
+
+# --- Organizational context ---
+
+atum:Project a owl:Class ;
+    rdfs:label "Projet"@fr ;
+    rdfs:comment "Projet client ou interne ATUM."@fr .
+
+atum:Client a owl:Class ;
+    rdfs:label "Client"@fr ;
+    rdfs:comment "Client de l'agence."@fr .
+
+atum:FileCategory a owl:Class ;
+    rdfs:label "Catégorie de fichier"@fr ;
+    rdfs:comment "Classification fonctionnelle : contrat, facture, livrable, spec, etc."@fr .
+
+# --- EU AI Act (Rég. 2024/1689) ---
+
+atum:AISystem a owl:Class ;
+    rdfs:label "Système d'IA"@fr ;
+    rdfs:comment "Système d'intelligence artificielle au sens du Règlement européen sur l'IA (Art. 3)."@fr ;
+    rdfs:subClassOf prov:Entity .
+
+atum:Dataset a owl:Class ;
+    rdfs:label "Jeu de données"@fr ;
+    rdfs:comment "Jeu de données utilisé pour l'entraînement, la validation ou le test (Art. 10)."@fr ;
+    rdfs:subClassOf prov:Entity .
+
+atum:ModelVersion a owl:Class ;
+    rdfs:label "Version de modèle"@fr ;
+    rdfs:comment "Version spécifique d'un modèle d'IA avec ses métriques de performance (Art. 11)."@fr ;
+    rdfs:subClassOf prov:Entity .
+
+atum:ConformityAssessment a owl:Class ;
+    rdfs:label "Évaluation de conformité"@fr ;
+    rdfs:comment "Évaluation de conformité du système d'IA (Art. 43)."@fr ;
+    rdfs:subClassOf prov:Activity .
+
+atum:HumanOversightAction a owl:Class ;
+    rdfs:label "Action de supervision humaine"@fr ;
+    rdfs:comment "Intervention humaine dans le cycle de vie du système d'IA (Art. 14)."@fr ;
+    rdfs:subClassOf prov:Activity .
+
+atum:Incident a owl:Class ;
+    rdfs:label "Incident"@fr ;
+    rdfs:comment "Incident impliquant un système d'IA à haut risque (Art. 62)."@fr ;
+    rdfs:subClassOf prov:Activity .
+
+atum:IncidentReport a owl:Class ;
+    rdfs:label "Rapport d'incident"@fr ;
+    rdfs:comment "Rapport officiel d'un incident grave (Art. 62, para. 1)."@fr ;
+    rdfs:subClassOf prov:Entity .
+
+atum:RiskAssessment a owl:Class ;
+    rdfs:label "Évaluation des risques"@fr ;
+    rdfs:comment "Évaluation systématique des risques du système d'IA (Art. 9)."@fr ;
+    rdfs:subClassOf prov:Activity .
+
+atum:Risk a owl:Class ;
+    rdfs:label "Risque"@fr ;
+    rdfs:comment "Risque identifié pour un système d'IA (Art. 9, para. 2)."@fr .
+
+atum:MitigationMeasure a owl:Class ;
+    rdfs:label "Mesure d'atténuation"@fr ;
+    rdfs:comment "Mesure adoptée pour atténuer un risque identifié (Art. 9, para. 4)."@fr .
+
+# --- Integrity ---
+
+atum:IntegrityStatus a owl:Class ;
+    rdfs:label "Statut d'intégrité"@fr ;
+    rdfs:comment "Résultat de la vérification d'intégrité."@fr .
+
+atum:AlertLevel a owl:Class ;
+    rdfs:label "Niveau d'alerte"@fr ;
+    rdfs:comment "Criticité d'un événement d'audit."@fr .
+
+# =============================================================================
+# EVENT TYPE ENUMERATION (owl:oneOf)
+# =============================================================================
+
+atum:EventType a owl:Class ;
+    rdfs:label "Type d'événement"@fr ;
+    owl:oneOf (
+        atum:FileCreated
+        atum:FileModified
+        atum:FileDeleted
+        atum:FileRenamed
+        atum:FileMoved
+        atum:IntegrityVerified
+        atum:IntegrityViolation
+        atum:HashComputed
+        atum:PeriodicScan
+        atum:BaselineEstablished
+    ) .
+
+atum:FileCreated a atum:EventType ; rdfs:label "Création"@fr .
+atum:FileModified a atum:EventType ; rdfs:label "Modification"@fr .
+atum:FileDeleted a atum:EventType ; rdfs:label "Suppression"@fr .
+atum:FileRenamed a atum:EventType ; rdfs:label "Renommage"@fr .
+atum:FileMoved a atum:EventType ; rdfs:label "Déplacement"@fr .
+atum:IntegrityVerified a atum:EventType ; rdfs:label "Intégrité vérifiée"@fr .
+atum:IntegrityViolation a atum:EventType ; rdfs:label "Violation d'intégrité"@fr .
+atum:HashComputed a atum:EventType ; rdfs:label "Hash calculé"@fr .
+atum:PeriodicScan a atum:EventType ; rdfs:label "Scan périodique"@fr .
+atum:BaselineEstablished a atum:EventType ; rdfs:label "Baseline établie"@fr .
+
+# --- Integrity status individuals ---
+
+atum:Verified a atum:IntegrityStatus ; rdfs:label "Vérifié"@fr .
+atum:Tampered a atum:IntegrityStatus ; rdfs:label "Altéré"@fr .
+atum:Unknown a atum:IntegrityStatus ; rdfs:label "Inconnu"@fr .
+atum:Deleted a atum:IntegrityStatus ; rdfs:label "Supprimé"@fr .
+atum:New a atum:IntegrityStatus ; rdfs:label "Nouveau"@fr .
+
+# --- Alert levels ---
+
+atum:Critical a atum:AlertLevel ; rdfs:label "Critique"@fr .
+atum:Warning a atum:AlertLevel ; rdfs:label "Avertissement"@fr .
+atum:Info a atum:AlertLevel ; rdfs:label "Information"@fr .
+
+# --- Risk level (Art. 6) ---
+
+atum:RiskLevel a owl:Class ;
+    rdfs:label "Niveau de risque"@fr ;
+    rdfs:comment "Classification du niveau de risque d'un système d'IA selon l'AI Act."@fr ;
+    owl:oneOf (
+        atum:Unacceptable
+        atum:HighRisk
+        atum:LimitedRisk
+        atum:MinimalRisk
+    ) .
+
+atum:Unacceptable a atum:RiskLevel ; rdfs:label "Inacceptable"@fr .
+atum:HighRisk a atum:RiskLevel ; rdfs:label "Risque élevé"@fr .
+atum:LimitedRisk a atum:RiskLevel ; rdfs:label "Risque limité"@fr .
+atum:MinimalRisk a atum:RiskLevel ; rdfs:label "Risque minimal"@fr .
+
+# --- Compliance status ---
+
+atum:ComplianceStatus a owl:Class ;
+    rdfs:label "Statut de conformité"@fr ;
+    rdfs:comment "Statut de conformité d'un système d'IA au regard du Règlement EU 2024/1689."@fr ;
+    owl:oneOf (
+        atum:Compliant
+        atum:NonCompliant
+        atum:CompliancePending
+        atum:UnderReview
+    ) .
+
+atum:Compliant a atum:ComplianceStatus ; rdfs:label "Conforme"@fr .
+atum:NonCompliant a atum:ComplianceStatus ; rdfs:label "Non conforme"@fr .
+atum:CompliancePending a atum:ComplianceStatus ; rdfs:label "En attente"@fr .
+atum:UnderReview a atum:ComplianceStatus ; rdfs:label "En cours d'examen"@fr .
+
+# --- Lifecycle phase ---
+
+atum:LifecyclePhase a owl:Class ;
+    rdfs:label "Phase du cycle de vie"@fr ;
+    rdfs:comment "Phase du cycle de vie d'un système d'IA."@fr ;
+    owl:oneOf (
+        atum:PhaseDevelopment
+        atum:PhaseDeployment
+        atum:PhaseOperation
+        atum:PhasePostMarket
+        atum:PhaseRetired
+    ) .
+
+atum:PhaseDevelopment a atum:LifecyclePhase ; rdfs:label "Développement"@fr .
+atum:PhaseDeployment a atum:LifecyclePhase ; rdfs:label "Déploiement"@fr .
+atum:PhaseOperation a atum:LifecyclePhase ; rdfs:label "Opération"@fr .
+atum:PhasePostMarket a atum:LifecyclePhase ; rdfs:label "Post-marché"@fr .
+atum:PhaseRetired a atum:LifecyclePhase ; rdfs:label "Retiré"@fr .
+
+# --- Incident severity (Art. 62) ---
+
+atum:IncidentSeverity a owl:Class ;
+    rdfs:label "Sévérité de l'incident"@fr ;
+    rdfs:comment "Niveau de gravité d'un incident impliquant un système d'IA."@fr ;
+    owl:oneOf (
+        atum:SeverityCritical
+        atum:SeverityHigh
+        atum:SeverityMedium
+        atum:SeverityLow
+    ) .
+
+atum:SeverityCritical a atum:IncidentSeverity ; rdfs:label "Critique"@fr .
+atum:SeverityHigh a atum:IncidentSeverity ; rdfs:label "Élevé"@fr .
+atum:SeverityMedium a atum:IncidentSeverity ; rdfs:label "Moyen"@fr .
+atum:SeverityLow a atum:IncidentSeverity ; rdfs:label "Faible"@fr .
+
+# =============================================================================
+# OBJECT PROPERTIES
+# =============================================================================
+
+# --- File relationships ---
+
+atum:hasVersion a owl:ObjectProperty ;
+    rdfs:label "a pour version"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range atum:FileVersion .
+
+atum:previousVersion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "version précédente"@fr ;
+    rdfs:domain atum:FileVersion ;
+    rdfs:range atum:FileVersion ;
+    rdfs:comment "Chaîne de provenance versionnée. Fonctionnelle : une version n'a qu'un seul prédécesseur."@fr .
+
+atum:currentVersion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "version courante"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range atum:FileVersion .
+
+# --- Hash ---
+
+atum:hasHash a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "a pour hash"@fr ;
+    rdfs:domain atum:FileVersion ;
+    rdfs:range atum:HashDigest .
+
+# --- Audit event relationships ---
+
+atum:hasEventType a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "type d'événement"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range atum:EventType .
+
+atum:concernsFile a owl:ObjectProperty ;
+    rdfs:label "concerne le fichier"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range atum:File .
+
+atum:concernsVersion a owl:ObjectProperty ;
+    rdfs:label "concerne la version"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range atum:FileVersion .
+
+atum:detectedBy a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "détecté par"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range atum:Agent ;
+    rdfs:subPropertyOf prov:wasAssociatedWith .
+
+atum:hasIntegrityStatus a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "statut d'intégrité"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range atum:IntegrityStatus .
+
+atum:hasAlertLevel a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "niveau d'alerte"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range atum:AlertLevel .
+
+# --- Organizational ---
+
+atum:belongsToProject a owl:ObjectProperty ;
+    rdfs:label "appartient au projet"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range atum:Project .
+
+atum:hasClient a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "a pour client"@fr ;
+    rdfs:domain atum:Project ;
+    rdfs:range atum:Client .
+
+atum:hasCategory a owl:ObjectProperty ;
+    rdfs:label "a pour catégorie"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range atum:FileCategory .
+
+# --- AI System relationships (AI Act) ---
+
+atum:belongsToAISystem a owl:ObjectProperty ;
+    rdfs:label "appartient au système d'IA"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range atum:AISystem .
+
+atum:hasRiskLevel a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "niveau de risque"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:RiskLevel .
+
+atum:hasComplianceStatus a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "statut de conformité"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:ComplianceStatus .
+
+atum:hasLifecyclePhase a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "phase du cycle de vie"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:LifecyclePhase .
+
+atum:hasOversightAction a owl:ObjectProperty ;
+    rdfs:label "a pour action de supervision"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:HumanOversightAction .
+
+# --- Model & Data governance (Art. 11, 17) ---
+
+atum:hasModelVersion a owl:ObjectProperty ;
+    rdfs:label "a pour version de modèle"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:ModelVersion .
+
+atum:currentModelVersion a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "version courante du modèle"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:ModelVersion .
+
+atum:hasTrainingData a owl:ObjectProperty ;
+    rdfs:label "données d'entraînement"@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range atum:Dataset .
+
+atum:hasValidationData a owl:ObjectProperty ;
+    rdfs:label "données de validation"@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range atum:Dataset .
+
+atum:hasTestData a owl:ObjectProperty ;
+    rdfs:label "données de test"@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range atum:Dataset .
+
+atum:hasConformityAssessment a owl:ObjectProperty ;
+    rdfs:label "a pour évaluation de conformité"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:ConformityAssessment .
+
+# --- Incident management (Art. 62) ---
+
+atum:involvesSystem a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "implique le système"@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range atum:AISystem .
+
+atum:hasIncidentSeverity a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "sévérité de l'incident"@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range atum:IncidentSeverity .
+
+atum:hasIncidentReport a owl:ObjectProperty ;
+    rdfs:label "a pour rapport d'incident"@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range atum:IncidentReport .
+
+# --- Risk management (Art. 9) ---
+
+atum:hasRiskAssessment a owl:ObjectProperty ;
+    rdfs:label "a pour évaluation des risques"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range atum:RiskAssessment .
+
+atum:identifiesRisk a owl:ObjectProperty ;
+    rdfs:label "identifie le risque"@fr ;
+    rdfs:domain atum:RiskAssessment ;
+    rdfs:range atum:Risk .
+
+atum:hasMitigation a owl:ObjectProperty ;
+    rdfs:label "a pour mesure d'atténuation"@fr ;
+    rdfs:domain atum:Risk ;
+    rdfs:range atum:MitigationMeasure .
+
+atum:mitigatesRisk a owl:ObjectProperty ;
+    rdfs:label "atténue le risque"@fr ;
+    rdfs:domain atum:MitigationMeasure ;
+    rdfs:range atum:Risk .
+
+# =============================================================================
+# DATATYPE PROPERTIES
+# =============================================================================
+
+atum:filePath a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "chemin du fichier"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range xsd:string .
+
+atum:fileName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom du fichier"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range xsd:string .
+
+atum:fileExtension a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "extension"@fr ;
+    rdfs:domain atum:File ;
+    rdfs:range xsd:string .
+
+atum:fileSizeBytes a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "taille en octets"@fr ;
+    rdfs:domain atum:FileVersion ;
+    rdfs:range xsd:long .
+
+atum:mimeType a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "type MIME"@fr ;
+    rdfs:domain atum:FileVersion ;
+    rdfs:range xsd:string .
+
+atum:hashValue a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "valeur du hash"@fr ;
+    rdfs:domain atum:HashDigest ;
+    rdfs:range xsd:hexBinary .
+
+atum:hashAlgorithm a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "algorithme de hash"@fr ;
+    rdfs:domain atum:HashDigest ;
+    rdfs:range xsd:string .
+
+atum:timestamp a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "horodatage"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range xsd:dateTime .
+
+atum:versionTimestamp a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "horodatage de version"@fr ;
+    rdfs:domain atum:FileVersion ;
+    rdfs:range xsd:dateTime .
+
+atum:versionNumber a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "numéro de version"@fr ;
+    rdfs:domain atum:FileVersion ;
+    rdfs:range xsd:positiveInteger .
+
+atum:eventDescription a owl:DatatypeProperty ;
+    rdfs:label "description de l'événement"@fr ;
+    rdfs:domain atum:AuditEvent ;
+    rdfs:range xsd:string .
+
+atum:agentName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom de l'agent"@fr ;
+    rdfs:domain atum:Agent ;
+    rdfs:range xsd:string .
+
+atum:agentType a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "type d'agent"@fr ;
+    rdfs:comment "Valeurs : 'daemon', 'manual', 'ci-cd', 'claude-code'"@fr ;
+    rdfs:domain atum:Agent ;
+    rdfs:range xsd:string .
+
+atum:projectName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom du projet"@fr ;
+    rdfs:domain atum:Project ;
+    rdfs:range xsd:string .
+
+atum:clientName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom du client"@fr ;
+    rdfs:domain atum:Client ;
+    rdfs:range xsd:string .
+
+atum:categoryName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom de catégorie"@fr ;
+    rdfs:domain atum:FileCategory ;
+    rdfs:range xsd:string .
+
+# --- AI System datatype properties ---
+
+atum:systemName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom du système"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+atum:systemDescription a owl:DatatypeProperty ;
+    rdfs:label "description du système"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+atum:intendedPurpose a owl:DatatypeProperty ;
+    rdfs:label "finalité prévue"@fr ;
+    rdfs:comment "Usage prévu du système d'IA (Art. 13)."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+atum:providerName a owl:DatatypeProperty ;
+    rdfs:label "nom du fournisseur"@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+atum:retentionMinMonths a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "rétention minimale en mois"@fr ;
+    rdfs:comment "Durée minimale de conservation des logs (Art. 12 : minimum 6 mois)."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:positiveInteger .
+
+# --- Dataset properties ---
+
+atum:datasetName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "nom du jeu de données"@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:string .
+
+atum:datasetDescription a owl:DatatypeProperty ;
+    rdfs:label "description du jeu de données"@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:string .
+
+atum:datasetSize a owl:DatatypeProperty ;
+    rdfs:label "taille du jeu de données"@fr ;
+    rdfs:comment "Nombre d'échantillons dans le jeu de données."@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:long .
+
+# --- Model version properties ---
+
+atum:modelVersionTag a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "tag de version du modèle"@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+atum:modelTrainedAt a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "date d'entraînement"@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:dateTime .
+
+atum:performanceMetrics a owl:DatatypeProperty ;
+    rdfs:label "métriques de performance"@fr ;
+    rdfs:comment "Métriques sérialisées en JSON (accuracy, F1, etc.)."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+# --- Conformity assessment properties ---
+
+atum:assessorName a owl:DatatypeProperty ;
+    rdfs:label "nom de l'évaluateur"@fr ;
+    rdfs:domain atum:ConformityAssessment ;
+    rdfs:range xsd:string .
+
+atum:assessmentDate a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "date d'évaluation"@fr ;
+    rdfs:domain atum:ConformityAssessment ;
+    rdfs:range xsd:dateTime .
+
+atum:assessmentResult a owl:DatatypeProperty ;
+    rdfs:label "résultat de l'évaluation"@fr ;
+    rdfs:domain atum:ConformityAssessment ;
+    rdfs:range xsd:string .
+
+# --- Human oversight properties ---
+
+atum:oversightDescription a owl:DatatypeProperty ;
+    rdfs:label "description de la supervision"@fr ;
+    rdfs:domain atum:HumanOversightAction ;
+    rdfs:range xsd:string .
+
+atum:oversightTimestamp a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "horodatage de supervision"@fr ;
+    rdfs:domain atum:HumanOversightAction ;
+    rdfs:range xsd:dateTime .
+
+atum:oversightActor a owl:DatatypeProperty ;
+    rdfs:label "acteur de supervision"@fr ;
+    rdfs:domain atum:HumanOversightAction ;
+    rdfs:range xsd:string .
+
+# --- Incident properties ---
+
+atum:incidentId a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "identifiant de l'incident"@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range xsd:string .
+
+atum:incidentDescription a owl:DatatypeProperty ;
+    rdfs:label "description de l'incident"@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range xsd:string .
+
+atum:incidentTimestamp a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "horodatage de l'incident"@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range xsd:dateTime .
+
+atum:reportingDeadline a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "date limite de déclaration"@fr ;
+    rdfs:comment "Délai de 15 jours pour la déclaration initiale (Art. 62, para. 1)."@fr ;
+    rdfs:domain atum:Incident ;
+    rdfs:range xsd:dateTime .
+
+# --- Risk properties ---
+
+atum:riskId a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "identifiant du risque"@fr ;
+    rdfs:domain atum:Risk ;
+    rdfs:range xsd:string .
+
+atum:riskDescription a owl:DatatypeProperty ;
+    rdfs:label "description du risque"@fr ;
+    rdfs:domain atum:Risk ;
+    rdfs:range xsd:string .
+
+atum:residualRiskLevel a owl:DatatypeProperty ;
+    rdfs:label "niveau de risque résiduel"@fr ;
+    rdfs:comment "Niveau de risque restant après application des mesures d'atténuation."@fr ;
+    rdfs:domain atum:Risk ;
+    rdfs:range xsd:string .
+
+# --- Mitigation properties ---
+
+atum:mitigationDescription a owl:DatatypeProperty ;
+    rdfs:label "description de la mesure"@fr ;
+    rdfs:domain atum:MitigationMeasure ;
+    rdfs:range xsd:string .
+
+atum:mitigationStatus a owl:DatatypeProperty ;
+    rdfs:label "statut de la mesure"@fr ;
+    rdfs:domain atum:MitigationMeasure ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# ANNEX IV — Technical Documentation (Reg. 2024/1689)
+# =============================================================================
+
+# --- Point 1 : General description of the AI system ---
+
+atum:annexIV_generalDescription a owl:DatatypeProperty ;
+    rdfs:label "description générale (Annexe IV, pt. 1)"@fr ;
+    rdfs:comment "Description générale du système d'IA incluant sa finalité, son fonctionnement et ses interactions."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+# --- Point 2 : Components and interaction ---
+
+atum:annexIV_componentDescription a owl:DatatypeProperty ;
+    rdfs:label "description des composants (Annexe IV, pt. 2)"@fr ;
+    rdfs:comment "Description détaillée des composants du système et de leur interaction."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+atum:annexIV_hardwareRequirements a owl:DatatypeProperty ;
+    rdfs:label "exigences matérielles (Annexe IV, pt. 2)"@fr ;
+    rdfs:comment "Ressources matérielles nécessaires au fonctionnement du système."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+# --- Point 3 : Development process ---
+
+atum:annexIV_developmentProcess a owl:DatatypeProperty ;
+    rdfs:label "processus de développement (Annexe IV, pt. 3)"@fr ;
+    rdfs:comment "Description du processus de développement, y compris les méthodes et techniques utilisées."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+atum:annexIV_designChoices a owl:DatatypeProperty ;
+    rdfs:label "choix de conception (Annexe IV, pt. 3)"@fr ;
+    rdfs:comment "Principales décisions de conception et justifications."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+atum:annexIV_computationalResources a owl:DatatypeProperty ;
+    rdfs:label "ressources de calcul (Annexe IV, pt. 3)"@fr ;
+    rdfs:comment "Ressources de calcul utilisées pour le développement et l'entraînement."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+# --- Point 4 : Capabilities and limitations ---
+
+atum:annexIV_performanceDescription a owl:DatatypeProperty ;
+    rdfs:label "description des performances (Annexe IV, pt. 4)"@fr ;
+    rdfs:comment "Niveaux de performance attendus, y compris pour des groupes spécifiques."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+atum:annexIV_knownLimitations a owl:DatatypeProperty ;
+    rdfs:label "limites connues (Annexe IV, pt. 4)"@fr ;
+    rdfs:comment "Limites connues et conditions de sous-performance prévisibles."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+atum:annexIV_foreseeMisuse a owl:DatatypeProperty ;
+    rdfs:label "mésusages prévisibles (Annexe IV, pt. 4)"@fr ;
+    rdfs:comment "Utilisations abusives raisonnablement prévisibles du système."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+# --- Point 5 : Data governance (Art. 10) ---
+
+atum:annexIV_dataGovernance a owl:DatatypeProperty ;
+    rdfs:label "gouvernance des données (Annexe IV, pt. 5)"@fr ;
+    rdfs:comment "Description des pratiques de gouvernance des données utilisées."@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:string .
+
+atum:annexIV_dataPreparation a owl:DatatypeProperty ;
+    rdfs:label "préparation des données (Annexe IV, pt. 5)"@fr ;
+    rdfs:comment "Opérations de prétraitement : annotation, nettoyage, enrichissement."@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:string .
+
+atum:annexIV_dataOrigin a owl:DatatypeProperty ;
+    rdfs:label "origine des données (Annexe IV, pt. 5)"@fr ;
+    rdfs:comment "Provenance et source des données d'entraînement, validation, test."@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:string .
+
+atum:annexIV_dataBiasAssessment a owl:DatatypeProperty ;
+    rdfs:label "évaluation des biais (Annexe IV, pt. 5)"@fr ;
+    rdfs:comment "Analyse des biais potentiels dans les données et mesures correctives."@fr ;
+    rdfs:domain atum:Dataset ;
+    rdfs:range xsd:string .
+
+# --- Point 6 : Human oversight (Art. 14) ---
+
+atum:annexIV_oversightMeasures a owl:DatatypeProperty ;
+    rdfs:label "mesures de supervision humaine (Annexe IV, pt. 6)"@fr ;
+    rdfs:comment "Mesures de supervision humaine mises en place conformément à l'Art. 14."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+# --- Point 7 : Accuracy, robustness, cybersecurity (Art. 15) ---
+
+atum:annexIV_accuracyMetrics a owl:DatatypeProperty ;
+    rdfs:label "métriques de précision (Annexe IV, pt. 7)"@fr ;
+    rdfs:comment "Métriques de précision utilisées et résultats des tests."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+atum:annexIV_robustnessTests a owl:DatatypeProperty ;
+    rdfs:label "tests de robustesse (Annexe IV, pt. 7)"@fr ;
+    rdfs:comment "Tests de robustesse effectués et résultats (adversarial, distribution shift)."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+atum:annexIV_cybersecurityMeasures a owl:DatatypeProperty ;
+    rdfs:label "mesures de cybersécurité (Annexe IV, pt. 7)"@fr ;
+    rdfs:comment "Mesures de cybersécurité prises pour protéger le système."@fr ;
+    rdfs:domain atum:AISystem ;
+    rdfs:range xsd:string .
+
+# --- Point 8 : Substantial modifications ---
+
+atum:annexIV_changeLog a owl:DatatypeProperty ;
+    rdfs:label "journal des modifications (Annexe IV, pt. 8)"@fr ;
+    rdfs:comment "Description des modifications substantielles apportées au système."@fr ;
+    rdfs:domain atum:ModelVersion ;
+    rdfs:range xsd:string .
+
+# --- Point 9 : Harmonised standards ---
+
+atum:annexIV_appliedStandards a owl:DatatypeProperty ;
+    rdfs:label "normes appliquées (Annexe IV, pt. 9)"@fr ;
+    rdfs:comment "Liste des normes harmonisées ou spécifications communes appliquées."@fr ;
+    rdfs:domain atum:ConformityAssessment ;
+    rdfs:range xsd:string .
+
+# =============================================================================
+# OWL 2 RESTRICTIONS (DL-safe)
+# =============================================================================
+
+# Every FileVersion MUST have exactly one HashDigest
+atum:FileVersion rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hasHash ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:HashDigest
+] .
+
+# Every AuditEvent MUST have exactly one timestamp
+atum:AuditEvent rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:timestamp ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onDataRange xsd:dateTime
+] .
+
+# Every AuditEvent MUST have exactly one EventType
+atum:AuditEvent rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hasEventType ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:EventType
+] .
+
+# Every AuditEvent MUST concern at least one File
+atum:AuditEvent rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:concernsFile ;
+    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:File
+] .
+
+# Every HashDigest MUST have exactly one hashValue
+atum:HashDigest rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hashValue ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onDataRange xsd:hexBinary
+] .
+
+# Every HashDigest MUST have exactly one hashAlgorithm
+atum:HashDigest rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hashAlgorithm ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onDataRange xsd:string
+] .
+
+# --- EU AI Act restrictions ---
+
+# Every AISystem MUST have exactly one RiskLevel
+atum:AISystem rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hasRiskLevel ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:RiskLevel
+] .
+
+# Every AISystem MUST have exactly one ComplianceStatus
+atum:AISystem rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hasComplianceStatus ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:ComplianceStatus
+] .
+
+# Every Incident MUST involve exactly one AISystem
+atum:Incident rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:involvesSystem ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:AISystem
+] .
+
+# Every Incident MUST have exactly one IncidentSeverity
+atum:Incident rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty atum:hasIncidentSeverity ;
+    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+    owl:onClass atum:IncidentSeverity
+] .
