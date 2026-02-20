@@ -24,7 +24,7 @@ atum_audit/
     └── report.md.j2     # Markdown compliance report template
 
 atum_mcp_server.py       # FastMCP server — 15 tools, multi-project via AgentCache
-hooks/                   # Claude Code hooks (SessionStart, PostWrite, PostCommit)
+hooks/                   # Claude Code hooks (SessionStart, PostWrite, PostBash)
 commands/atum-audit.md   # Skill command /atum-audit
 audit_store/             # Runtime data (per-project, gitignored)
 └── audit.ttl            # Accumulated RDF data (ABox)
@@ -37,7 +37,7 @@ audit_store/             # Runtime data (per-project, gitignored)
 - **Mutable ABox**: Audit data (audit.ttl) accumulates events, versions, hashes
 - **Thread safety**: ReentrantLock in AuditStore, Lock + OrderedDict in AgentCache
 - **Snapshot-then-flush**: Cache operations snapshot under lock, flush I/O outside lock
-- **Auto-init**: Hooks detect project roots (14 markers) and initialize ATUM automatically
+- **Auto-init**: Hooks detect project roots (15 markers) and initialize ATUM automatically
 
 ## MCP Tools (15)
 
@@ -67,14 +67,18 @@ audit_store/             # Runtime data (per-project, gitignored)
 ## CLI
 
 ```bash
-atum-audit init [--path DIR]      # Initialize in directory
-atum-audit start                   # Start daemon with watchdog
-atum-audit scan                    # One-shot full scan
-atum-audit verify PATH             # Check single file integrity
-atum-audit history PATH            # Full audit trail
-atum-audit violations              # List violations (exit 1 if any)
-atum-audit stats                   # Summary
-atum-audit query "SPARQL..."       # Arbitrary SPARQL query
+atum-audit init [--path DIR]            # Initialize in directory
+atum-audit start                         # Start daemon with watchdog
+atum-audit scan                          # One-shot full scan
+atum-audit verify PATH                   # Check single file integrity
+atum-audit history PATH                  # Full audit trail
+atum-audit violations                    # List violations (exit 1 if any)
+atum-audit stats                         # Summary
+atum-audit query "SPARQL..."             # Arbitrary SPARQL query
+atum-audit compliance status SYSTEM      # Compliance overview
+atum-audit compliance validate SYSTEM    # SHACL validation
+atum-audit compliance annex-iv SYSTEM    # Annex IV completeness
+atum-audit compliance export SYSTEM      # Export report (--format html|md)
 ```
 
 ## Programmatic Usage

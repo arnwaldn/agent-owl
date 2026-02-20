@@ -32,8 +32,8 @@
 
 ### Claude Code Integration
 - **15 MCP tools**: File integrity, compliance, SPARQL, project management
-- **3 automatic hooks**: SessionStart, PostWrite, PostCommit — zero configuration
-- **Skill command**: `/atum-audit` with 14 operations
+- **3 automatic hooks**: SessionStart, PostWrite, PostBash (git commit) — zero configuration
+- **Skill command**: `/atum-audit` with 15 operations
 - **Multi-project**: Autonomous detection and tracking across all your projects
 - **Plugin format**: One-command installation
 
@@ -113,9 +113,10 @@ pip install -e ".[all]"            # Everything
 pip install -e ".[dev]"            # Development (pytest, ruff, mypy)
 ```
 
-The MCP server also requires:
+The MCP server requires FastMCP:
 ```bash
-pip install "mcp[cli]"             # FastMCP for the MCP server
+pip install -e ".[server]"         # MCP server (FastMCP)
+pip install -e ".[all]"            # Everything including MCP server
 ```
 
 ---
@@ -202,6 +203,42 @@ Agent Owl installs 3 automatic hooks in Claude Code:
 
 All hooks exit 0 unconditionally — they never block Claude Code.
 
+### Manual Hook Registration
+
+If you installed manually (not via `claude plugin install`), add this to `~/.claude/settings.local.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "python \"$HOME/.claude/hooks/atum-session-start.py\"",
+        "timeout": 15
+      }]
+    }],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{
+          "type": "command",
+          "command": "python \"$HOME/.claude/hooks/atum-post-write.py\"",
+          "timeout": 10
+        }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "command",
+          "command": "python \"$HOME/.claude/hooks/atum-compliance-check.py\"",
+          "timeout": 15
+        }]
+      }
+    ]
+  }
+}
+```
+
 ---
 
 ## Configuration
@@ -240,7 +277,8 @@ Each project gets an `atum-audit.config.json`:
 **All files modified in last 24h:**
 ```sparql
 PREFIX atum: <https://atum.dev/ontology/audit#>
-SELECT ?path ?timestamp WHERE {
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?path ?ts WHERE {
     ?evt atum:hasEventType atum:FileModified ;
          atum:concernsFile ?f ;
          atum:timestamp ?ts .
@@ -305,7 +343,7 @@ pytest tests/ --cov=atum_audit --cov-report=term-missing
 Agent Owl handles multiple projects simultaneously:
 
 1. **Walk-up discovery**: From any file path, walks up directories to find `atum-audit.config.json`
-2. **Project root detection**: Recognizes 14 project markers (`.git`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, etc.)
+2. **Project root detection**: Recognizes 15 project markers (`.git`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `pom.xml`, `build.gradle`, `composer.json`, `Gemfile`, `CMakeLists.txt`, `Makefile`, `setup.py`, `requirements.txt`)
 3. **Auto-initialization**: Creates config + audit_store + .gitignore entry automatically
 4. **AgentCache**: Thread-safe LRU cache (max 16 projects) with OrderedDict for O(1) operations
 5. **Isolation**: Each project has its own audit store, config, and RDF graph

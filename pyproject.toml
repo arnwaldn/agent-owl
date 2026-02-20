@@ -16,7 +16,8 @@ dependencies = [
 [project.optional-dependencies]
 shacl = ["pyshacl>=0.26"]
 report = ["jinja2>=3.1"]
-all = ["pyshacl>=0.26", "jinja2>=3.1"]
+server = ["mcp[cli]>=1.0"]
+all = ["pyshacl>=0.26", "jinja2>=3.1", "mcp[cli]>=1.0"]
 dev = [
     "pytest>=8.0",
     "pytest-cov",
@@ -25,6 +26,9 @@ dev = [
     "pyshacl>=0.26",
     "jinja2>=3.1",
 ]
+
+[project.urls]
+Repository = "https://github.com/arnwaldn/agent-owl"
 
 [project.scripts]
 atum-audit = "atum_audit.__main__:main"

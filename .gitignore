@@ -13,3 +13,5 @@ build/
 .venv/
 venv/
 *.zip
+.DS_Store
+Thumbs.db
