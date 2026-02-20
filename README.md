@@ -343,7 +343,7 @@ pytest tests/ --cov=atum_audit --cov-report=term-missing
 Agent Owl handles multiple projects simultaneously:
 
 1. **Walk-up discovery**: From any file path, walks up directories to find `atum-audit.config.json`
-2. **Project root detection**: Recognizes 15 project markers (`.git`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `pom.xml`, `build.gradle`, `composer.json`, `Gemfile`, `CMakeLists.txt`, `Makefile`, `setup.py`, `requirements.txt`)
+2. **Project root detection**: Recognizes 15 project markers (`.git`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `composer.json`, `Gemfile`, `CMakeLists.txt`, `Makefile`, `setup.py`, `requirements.txt`)
 3. **Auto-initialization**: Creates config + audit_store + .gitignore entry automatically
 4. **AgentCache**: Thread-safe LRU cache (max 16 projects) with OrderedDict for O(1) operations
 5. **Isolation**: Each project has its own audit store, config, and RDF graph

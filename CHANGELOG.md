@@ -11,7 +11,7 @@
 - **MCP Server**: 15 tools via FastMCP (file integrity, compliance, SPARQL, project management)
 - **Claude Code hooks**: SessionStart (auto-detect), PostToolUse Write|Edit (hash), PostToolUse Bash (compliance summary)
 - **Claude Code plugin structure**: installable via `claude plugin install`
-- **Skill command**: `/atum-audit` with 14 operations
+- **Skill command**: `/atum-audit` with 15 operations
 - **Discovery module**: `find_config()`, `find_project_root()`, `auto_init_project()`, `AgentCache`
 - **Thread-safe AgentCache**: OrderedDict LRU with double-check locking, flush-outside-lock pattern
 - **Path traversal protection**: `audit_init` validates paths inside user home directory
